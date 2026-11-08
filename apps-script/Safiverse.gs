@@ -57,14 +57,14 @@ function verify_(p) {
   const name = clean(p.name, 30); if (!name) return { ok: false, err: "name" };
   if (withCred && other) return { ok: false, err: "taken" };
   const group = clean(p.group, 40);
-  sh.appendRow([email, name, clean(p.age, 10), clean(p.av, 30), new Date(), new Date(), 0, 0, 0, "", hash_(token), "", p.parent ? "yes" : "", withCred ? user : "", withCred ? pinHash(user, p.pin) : "", "", "", "pending", group]);
-  try { MailApp.sendEmail({ to: ADMIN_EMAIL, name: "Safiverse", subject: "⏳ Safiverse: " + name + " təsdiq gözləyir",
-    htmlBody: mailHtml_("⏳ Yeni şagird təsdiq gözləyir", `<p style="font-size:15px"><b>${name}</b> · @${withCred ? user : "—"}<br>${clean(p.age, 10) === "kid" ? "👧 uşaq" : "🧑 böyük"} · ${email}${group ? "<br>👥 " + group : ""}</p>`, "Admin → təsdiq et", ""),
-    body: "Yeni şagird təsdiq gözləyir: " + name + " (@" + user + "), " + email + (group ? ", qrup: " + group : "") + ". " + APP_URL + "#sadmin" }); } catch (e) {}
-  return { ok: true, token: token, email: email, student: { name: name, age: clean(p.age, 10), avatar: clean(p.av, 30), user: withCred ? user : "", status: "pending" }, progress: null };
+  sh.appendRow([email, name, clean(p.age, 10), clean(p.av, 30), new Date(), new Date(), 0, 0, 0, "", hash_(token), "", p.parent ? "yes" : "", withCred ? user : "", withCred ? pinHash(user, p.pin) : "", "", "", "ok", group]);
+  try { MailApp.sendEmail({ to: ADMIN_EMAIL, name: "Safiverse", subject: "🆕 Safiverse: yeni tələbə — " + name,
+    htmlBody: mailHtml_("🆕 Yeni tələbə qeydiyyatdan keçdi", `<p style="font-size:15px"><b>${name}</b> · @${withCred ? user : "—"}<br>${clean(p.age, 10) === "kid" ? "👧 uşaq" : "🧑 böyük"} · ${email}${group ? "<br>👥 " + group : ""}</p>`, "Admin panel →", ""),
+    body: "Yeni tələbə qeydiyyatdan keçdi: " + name + " (@" + user + "), " + email + (group ? ", qrup: " + group : "") + ". " + APP_URL + "#sadmin" }); } catch (e) {}
+  return { ok: true, token: token, email: email, student: { name: name, age: clean(p.age, 10), avatar: clean(p.av, 30), user: withCred ? user : "", status: "ok" }, progress: null };
 }
-/* account status: "" (accounts made before approval existed) or "ok" = approved, "pending" = waiting for Safiverse, "blocked" */
-const stOf_ = r => { const s = String(r[17] || ""); return s === "pending" || s === "blocked" ? s : "ok"; };
+/* account status: everyone can learn right after sign-up (no approval step any more — accounts still marked "pending" count as approved); only "blocked" is kept out */
+const stOf_ = r => String(r[17] || "") === "blocked" ? "blocked" : "ok";
 function auth_(p) { const email = String(p.email || "").trim().toLowerCase(), sh = students_(), f = find_(sh, email);
   if (!f || !p.token || !tokOk_(f.v[10], p.token) || stOf_(f.v) === "blocked") return null; return { sh: sh, f: f, email: email, st: stOf_(f.v) }; }
 const authOk_ = p => { const a = auth_(p); return a && a.st === "ok" ? a : null; };
